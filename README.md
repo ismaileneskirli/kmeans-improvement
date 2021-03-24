@@ -11,12 +11,21 @@ Here are my works for improving kmeans algorithm.
 ## First possible upgrade  : Choosing the right k ?
 
 When we know how many cluster are required, thats perfect. But generally it is not the case.
-Therefore figuring out the right K solves a great problem.
+Therefore figuring out the right K solves a great problem. Elbow method is one way to figure out optimal k .
 
 ###  Elbow Method
 
 The method plots the various of cost with varying the value of K.
 The point at which the distortion declines is the optimal k value.
+
+Implementation of elbow method :
+https://pythonprogramminglanguage.com/kmeans-elbow-method/
+
+
+## Second Upgrade : Not dependant of initial centroid
+
+Kmean algorithm is very dependant on initial centroids selected. To eliminate this randomness, we will define a tolerance value and max iteration variable.
+Until these values are met we will take means of clusters and substract from initial centroids.
 
 
 
