@@ -35,3 +35,5 @@ Until these values are met we will take means of clusters and substract from ini
 
 https://learnai1.home.blog/2020/06/19/k-means/
 Github repo for data file : https://github.com/Hello-World-Blog/Artificial-Intelligence/blob/master/K-Means/iris.csv
+For choosing initial centroids
+https://en.wikipedia.org/wiki/K-means%2B%2B

@@ -1,83 +1,193 @@
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sb
+import math; #For pow and sqrt
+import sys;
+from random import shuffle, uniform;
+from sklearn.metrics import silhouette_score
+
+#### Preparing the Data
+def ReadData(filename):
+    f = open(filename, 'r')
+    #each line is an element of lines array.
+    lines = f.read().splitlines()
+    f.close()
+    #print(lines)
+    items = []
+    for i in range (1, len(lines)):
+        #line is an array where each feature is different feature.
+        line = lines[i].split(',')
+        itemFeatures = []
+
+        for j in range(len(line) -1):
+            ## convert feature ( string ) to float
+            feature = float(line[j])
+
+            ## add feature to array, not the last feauture.
+            itemFeatures.append(feature)
+        items.append(itemFeatures)
+
+    shuffle(items)
+
+    return items
+## returns the mins and max of the each attribute.
+def FindColMinMax(items):
+    n = len(items[0]);
+    minima = [sys.maxsize for i in range(n)];
+    maxima = [-sys.maxsize -1 for i in range(n)];
+
+    for item in items:
+        for f in range(len(item)):
+            if (item[f] < minima[f]):
+                minima[f] = item[f]
+
+            if (item[f] > maxima[f]):
+                maxima[f] = item[f];
+
+    return minima,maxima;
+
+## returns an array of len k, each element of array is an array of centroids len(attribute number of items)
+def InitializeMeans(items, k, cMin, cMax):
+
+    # Initialize means to random numbers between
+    # the min and max of each column/feature
+    f = len(items[0]); # number of features
+    means = [[0 for i in range(f)] for j in range(k)];
+
+    for mean in means:
+        for i in range(len(mean)):
+
+            # Set value to a random float
+            # (adding +-1 to avoid a wide placement of a mean)
+            ## random point within given interval
+            mean[i] = uniform(cMin[i]+1, cMax[i]-1);
+            #cprint(mean[i])
+
+    return means;
 
 
-class Kmeans :
-    #constructor to initialize the model with a default value of “k” cluster to 8
-    # maximum iterations to take when centroids not coincide to 100.
-    def __init__(self, k = 8, max_iter = 100):
-        self.k = k
-        self.max_iter = max_iter
-        print("Initialized k with : " ,k)
+# items = ReadData("iris.txt")
+# min,max = FindColMinMax(items)
 
-    # Calculating Distance :: Any distance metric can be used
-    def euclidDistance (self, x1, x2):
-    # Takes the centroid vector and datapoint vector, performs substraction between vectors.
-    # Squares the result
-    # sum all square and the apply sqrt.
-        distance = np.sqrt(np.sum(np.square(x1-x2), axis=1))
+# print(min,max)
+
+# means = InitializeMeans(items, 3, min, max)
+
+# print(means)
 
 
-    # Takes data and forms clusters based on similarity.
-    def fit(self, data):
-        self.centroids = []
+# lines = ReadData("iris.txt")
+# print("asd")
+# print(lines)
 
-        #first k points in the dataset are our centroids.
-        for i in range (self.k):
-            ## data.iloc Purely integer-location based indexing for selection by position.
-            self.centroids.append(data.iloc[i].to_numpy())
+def EuclideanDistance(x, y):
+    S = 0; # The sum of the squared differences of the elements
+    for i in range(len(x)):
+        S += math.pow(x[i]-y[i], 2)
 
-
-        for iteration in range(self.max_iter):
-            # Defining a dict for our classes
-            self.classes = {}
-
-            for cluster in range (self.k):
-                self.classes[cluster] = []
-
-            #Based on the distance of a data point and centroid, assign each point to a neares cluster.
-            for data_point in range (len(data)):
-                #Finds the similarity measure between the data point and the identified k-cluster centroids, distances is an array lenght k.
-                distances = self.euclidDistance(self.centroids,data.iloc[data_point].to_numpy())
-                #Returns the indices of the minimum values along an axis, so it returns the indice of closest centroid to the data point.
-                classification = np.argmin(distances)
-                self.classes[classification].append(data.iloc[data_point])
-
-            previousCentroids = np.array(self.centroids)
-            #Take the average of the cluster datapoints to recalculate the centroids, new centroids are the average of each classs.
-            for classification in self.classes:
-                self.centroids[classification] = np.average(self.classes[classification], axis=0)
+    #The square root of the sum
+    return math.sqrt(S)
 
 
-            optimal = True
-            currentCentroids = np.array(self.centroids)
-
-            ## Convergence is the difference between centroids, the sum of ( currentCentroid - previousCentroid) difference of centroids should be almost 0.
-            tolerance = 0.0001
-            if np.sum((currentCentroids - previousCentroids)/ previousCentroids * 100) > tolerance:
-                optimal = False # if difference is more than this epsilon value then it is not an optimal centroid and it will keep changing over iterations.
 
 
-            # if we found the optimal centroids then there is no need to keep iterating. It will not change more than the tolarence value defined.
-            if optimal:
-                break
+def UpdateMean(n,mean,item):
+    for i in range(len(mean)):
+        m = mean[i];
+        m = (m*(n-1)+item[i])/float(n);
+        mean[i] = round(m,3);
+
+    return mean;
+
+def FindClusters(means,items):
+    clusters = [[] for i in range(len(means))]; #Init clusters
+
+    for item in items:
+        #Classify item into a cluster
+        index = Classify(means,item);
+
+        #Add item to cluster
+        clusters[index].append(item);
+
+    return clusters;
 
 
+###_Core Functions_###
+def Classify(means,item):
+    #Classify item to the mean with minimum distance
+
+    minimum = sys.maxsize;
+    index = -1;
+
+    for i in range(len(means)):
+        #Find distance from item to mean
+        dis = EuclideanDistance(item,means[i]);
+
+        if(dis < minimum):
+            minimum = dis;
+            index = i;
+
+    return index;
+
+def CalculateMeans(k,items,maxIterations=100000):
+    #Find the minima and maxima for columns
+    cMin, cMax = FindColMinMax(items);
+
+    #Initialize means at random points
+    means = InitializeMeans(items,k,cMin,cMax);
+
+    #Initialize clusters, the array to hold
+    #the number of items in a class
+    clusterSizes = [0 for i in range(len(means))];
+
+    #An array to hold the cluster an item is in
+    belongsTo = [0 for i in range(len(items))];
+
+    #Calculate means
+    for e in range(maxIterations):
+        #If no change of cluster occurs, halt
+        noChange = True;
+        for i in range(len(items)):
+            item = items[i];
+            #Classify item into a cluster and update the
+            #corresponding means.
+
+            ## return which class ite item belongs.
+            index = Classify(means,item);
+
+            clusterSizes[index] += 1;
+            means[index] = UpdateMean(clusterSizes[index],means[index],item);
+
+            #Item changed cluster
+            if(index != belongsTo[i]):
+                noChange = False;
+
+            belongsTo[i] = index;
+
+        #Nothing changed, return
+        if(noChange):
+            break;
+
+    return means;
+
+
+###_Main_###
 def main():
-    ## Data preperation.
-    file = './iris.csv'
-    data = pd.read_csv(file)
-    data.head()
+    items = ReadData('iris.txt');
+
+    k = 3;
+
+    means = CalculateMeans(k,items);
+    clusters = FindClusters(means,items);
+    #print (means);
+    #print (clusters[0]);
 
 
-    clf = Kmeans(3)
+    newitem1= [5.1,3.5,1.4,0.2]
+    newitem2= [7.0,3.2,4.7,1.4]
+    newitem3 = [5.7,2.5,5.0,2.0]
+    print(Classify(means,newitem1))
+    print(Classify(means,newitem2))
+    print(Classify(means,newitem3))
+    #newItem = [5.4,3.7,1.5,0.2];
+    #print Classify(means,newItem);
 
-
-
-    X = data.iloc[:,:-1]
-
-    ## Parameters x vector, y vector, hue = Grouping variable that will produce points with different colors.
-    # Can be either categorical or numeric, although color mapping will behave differently in latter case.
-    sb.scatterplot(X.iloc[:,0] , X.iloc[:,1] , hue = data.iloc[:,-1])
+if __name__ == "__main__":
+    main();
