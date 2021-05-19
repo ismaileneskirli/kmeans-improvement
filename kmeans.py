@@ -1,7 +1,11 @@
-import math; #For pow and sqrt
+import math
+#from silhouette import NumberOfClusters; #For pow and sqrt
 import sys;
+import sklearn
 from random import shuffle, uniform;
-from sklearn.metrics import silhouette_score
+#from sklearn.metrics import silhouette_score
+from sklearn import cluster
+
 
 #### Preparing the Data
 def ReadData(filename):
@@ -44,6 +48,7 @@ def FindColMinMax(items):
     return minima,maxima;
 
 ## returns an array of len k, each element of array is an array of centroids len(attribute number of items)
+# array = [[4],[4],[4 eleman]]
 def InitializeMeans(items, k, cMin, cMax):
 
     # Initialize means to random numbers between
@@ -54,13 +59,14 @@ def InitializeMeans(items, k, cMin, cMax):
     for mean in means:
         for i in range(len(mean)):
 
+            #TODO aşağıdaki kısmı fonksiyona alabilirsin.
             # Set value to a random float
             # (adding +-1 to avoid a wide placement of a mean)
             ## random point within given interval
             mean[i] = uniform(cMin[i]+1, cMax[i]-1);
             #cprint(mean[i])
 
-    return means;
+    return means;# centroids.
 
 
 # items = ReadData("iris.txt")
@@ -77,6 +83,7 @@ def InitializeMeans(items, k, cMin, cMax):
 # print("asd")
 # print(lines)
 
+# TODO : Possible upgrade here : maybe choosing another distance method ?
 def EuclideanDistance(x, y):
     S = 0; # The sum of the squared differences of the elements
     for i in range(len(x)):
@@ -86,8 +93,6 @@ def EuclideanDistance(x, y):
     return math.sqrt(S)
 
 
-
-
 def UpdateMean(n,mean,item):
     for i in range(len(mean)):
         m = mean[i];
@@ -95,6 +100,7 @@ def UpdateMean(n,mean,item):
         mean[i] = round(m,3);
 
     return mean;
+
 
 def FindClusters(means,items):
     clusters = [[] for i in range(len(means))]; #Init clusters
@@ -110,6 +116,7 @@ def FindClusters(means,items):
 
 
 ###_Core Functions_###
+## Classify returns the class of item which is index -> 0,1,2
 def Classify(means,item):
     #Classify item to the mean with minimum distance
 
@@ -132,6 +139,7 @@ def CalculateMeans(k,items,maxIterations=100000):
 
     #Initialize means at random points
     means = InitializeMeans(items,k,cMin,cMax);
+    print(means)
 
     #Initialize clusters, the array to hold
     #the number of items in a class
@@ -168,24 +176,71 @@ def CalculateMeans(k,items,maxIterations=100000):
     return means;
 
 
+
+
+# Function to return initial centroids.
+# For the moment it is already not random, i take the min and max of each attribute and subtract -1 to avoid cases.
+# TODO : replace this function with Initialize means !
+def choose_initial_centroids():
+    ## Choose first centroid minima + 1,
+    # choose subsequent centroids from the remaining data point based on the distance
+    # with weighted probability distribution
+    #steps above to be repeated k -1 times.
+
+    return initial_centroids
+
+# return silhouette scores for given clustered items
+def silhouette_score(clusters):
+    ## TODO : implement this.
+
+
+
+    return silhouette_score
+
+
+
+######################## At the end of the project i will only call this function to cluster given dataset.############
+#TODO
+# Kmeans function without giving k as a parameter, it takes only data to be classed as parameter.
+def Kmeans(items):
+    ### pseudo code, working on it for the moment. :
+    NumberOfClusters = range(2,20)
+    silhouette_scores = []
+    for i in range(0,NumberOfClusters):
+        means = CalculateMeans(i,items)
+        clusters = FindClusters(means,items);
+        silhouette_scores.append(silhouette_score(clusters))
+
+
+    ## Brute force silhouette scores for a given range then return clusters with best silhoutte score.
+    best_means = CalculateMeans(max(silhouette_scores),items)
+    best_clusters = FindClusters(best_means, items)
+
+
+    return best_clusters
+
 ###_Main_###
 def main():
     items = ReadData('iris.txt');
+    #print(items)
 
+
+    # TODO : Choose k with function defined.
     k = 3;
 
     means = CalculateMeans(k,items);
+    #print(means) # average of attributes for each cluster(class)
     clusters = FindClusters(means,items);
-    #print (means);
+    print(clusters)
     #print (clusters[0]);
 
-
-    newitem1= [5.1,3.5,1.4,0.2]
-    newitem2= [7.0,3.2,4.7,1.4]
+    # able to classify items for the moment. will compare with choosing better initial points.
+    newitem1 = [5.1,3.5,1.4,0.2]
+    newitem2 = [7.0,3.2,4.7,1.4]
     newitem3 = [5.7,2.5,5.0,2.0]
-    print(Classify(means,newitem1))
-    print(Classify(means,newitem2))
-    print(Classify(means,newitem3))
+    # print(Classify(means,newitem1))
+    # print(Classify(means,newitem2))
+    # print(Classify(means,newitem3))
     #newItem = [5.4,3.7,1.5,0.2];
     #print Classify(means,newItem);
 

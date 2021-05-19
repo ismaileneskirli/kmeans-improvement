@@ -21,6 +21,9 @@ The point at which the distortion declines is the optimal k value.
 Implementation of elbow method :
 https://pythonprogramminglanguage.com/kmeans-elbow-method/
 
+### Silhouette Score :
+
+
 
 ## Second Upgrade : Not dependant of initial centroid
 
