@@ -4,7 +4,6 @@ import numpy as numpy
 import sklearn
 import matplotlib.pyplot as plt
 
-
 obs = numpy.concatenate( (numpy.random.randn(100, 2) , 20 + numpy.random.randn(300, 2) , -15+numpy.random.randn(200, 2)))
 silhouette_score_values=list()
 
@@ -30,6 +29,7 @@ plt.plot(NumberOfClusters, silhouette_score_values)
 plt.title("Silhouette score values vs Numbers of Clusters ")
 plt.show()
 
-Optimal_NumberOf_Components=NumberOfClusters[silhouette_score_values.index(max(silhouette_score_values))]
 print ("Optimal number of components is:")
 print (Optimal_NumberOf_Components)
+
+Optimal_NumberOf_Components=NumberOfClusters[silhouette_score_values.index(max(silhouette_score_values))]
