@@ -1,13 +1,11 @@
 import math
-#from silhouette import NumberOfClusters; #For pow and sqrt
 import sys;
 import sklearn
 from random import shuffle, uniform;
-#from sklearn.metrics import silhouette_score
 from sklearn import cluster
 from scipy import stats
 import numpy as np
-from difflib import SequenceMatcher
+import random
 
 #### Preparing the Data
 def ReadData(filename):
@@ -36,30 +34,6 @@ def ReadData(filename):
 
     return items
 
-#### Preparing the Data, do not include label.
-def ReadAttribute(filename):
-    f = open(filename, 'r')
-    #each line is an element of lines array.
-    lines = f.read().splitlines()
-    f.close()
-    #print(lines)
-    items = []
-    for i in range (0, len(lines)):
-        #line is an array where each feature is different feature.
-        line = lines[i].split(',')
-        itemFeatures = []
-
-        for j in range(len(line) -1):
-            ## convert feature ( string ) to float
-            feature = float(line[j])
-
-            ## add feature to array, not the last feauture.
-            itemFeatures.append(feature)
-        items.append(itemFeatures)
-
-    shuffle(items)
-
-    return items
 
 ## returns the mins and max of the each attribute.
 def FindColMinMax(items):
@@ -77,19 +51,6 @@ def FindColMinMax(items):
 
     return minima,maxima;
 
-# items = ReadData("iris.txt")
-# min,max = FindColMinMax(items)
-
-# print(min,max)
-
-# means = InitializeMeans(items, 3, min, max)
-
-# print(means)
-
-
-# lines = ReadData("iris.txt")
-# print("asd")
-# print(lines)
 
 # TODO : Possible upgrade here : maybe choosing another distance method ?
 def EuclideanDistance(x, y):
@@ -134,14 +95,12 @@ def return_clusters(means,items):
 
     return clusters;
 
-
-###_Core Functions_###
 ## Classify returns the class of item which is index -> 0,1,2
 def Classify(means,item):
     #Classify item to the mean with minimum distance
 
     minimum = sys.maxsize;
-    index = -1;
+    index = 1;
 
     for i in range(len(means)):
         #Find distance from item to mean
@@ -152,17 +111,19 @@ def Classify(means,item):
             index = i;
 
     return index;
-
+#NOT kodu test etmek için burada değişlik yapınız.
 def CalculateMeans(k,items,maxIterations=100000):
     #Find the minima and maxima for columns
     cMin, cMax = FindColMinMax(items);
-
+    ############### KODUMU TEST ETMEK ICIN BURADAN Means satırlarını yorum satırlarını açıp kapatabilirsiniz #############
     #Initialize means at random uniform points
     #means =InitializeMeans(items,k,cMin,cMax);
     #print(means)
     #Inıtialize means with proboability portionate to distances
     means = choose_initial_centroids(items,k,cMin,cMax);
-
+    ## Completely random initialization
+    #means = RandomlyInitializeMeans(items,k)
+    #print("len means : ",len(means))
     #Initialize clusters, the array to hold
     #the number of items in a class
     clusterSizes = [0 for i in range(len(means))];
@@ -181,7 +142,7 @@ def CalculateMeans(k,items,maxIterations=100000):
 
             ## return which class ite item belongs.
             index = Classify(means,item);
-
+            #print("index: ",index)
             clusterSizes[index] += 1;
             means[index] = UpdateMean(clusterSizes[index],means[index],item);
 
@@ -196,7 +157,7 @@ def CalculateMeans(k,items,maxIterations=100000):
             break;
 
     return means;
-
+# to find out average of silhouette scores for each cluster.
 def cal_average(num):
     sum_num = 0
     for t in num:
@@ -207,6 +168,7 @@ def cal_average(num):
 
 ## returns an array of len k, each element of array is an array of centroids len(attribute number of items)
 # array = [[4],[4],[4 eleman]]
+# initalize uniformyly withing given range
 def InitializeMeans(items, k, cMin, cMax):
 
     # Initialize means to random numbers between
@@ -226,11 +188,31 @@ def InitializeMeans(items, k, cMin, cMax):
             #cprint(mean[i])
 
     return means;# centroids.
+# completely random initialization.
+def RandomlyInitializeMeans(items, k):
+
+    # Initialize means to random numbers between
+    # the min and max of each column/feature
+    f = len(items[0])-1; # number of features
+    #print("f,k : ",f,k)
+    means = [[0 for i in range(f)] for j in range(k)];
+
+    for mean in means:
+        for i in range(len(mean)):
+
+            #TODO aşağıdaki kısmı fonksiyona alabilirsin.
+            # Set value to a random float
+            # (adding +-1 to avoid a wide placement of a mean)
+            ## random point within given interval
+            randomNumber = random.randint(0,149)
+            #print(items[randomNumber])
+            mean[i] = items[randomNumber][i]
+            #cprint(mean[i])
+    print(means)
+    return means;# centroids.
 
 # Function to return initial centroids.
-# For the moment it is already not random, i take the min and max of each attribute and subtract -1 to avoid cases.
-# TODO : replace this function with Initialize means !
-# use readAttributes function for items.
+# My way to choose initial centroids -> kmeans upgrade
 def choose_initial_centroids(items, k, cMin, cMax):
     ############### FIRST APPROACH : WEIGHTED PROBABILITY ########################
 #     1- Choose one center uniformly at random from among the data points.
@@ -270,7 +252,7 @@ def choose_initial_centroids(items, k, cMin, cMax):
 
     #print(means[:-k])
     return means
-
+# used to find out max difference between cluster sizes
 def max_abs_diff(arr):
 
     # To store the minimum and the maximum
@@ -293,7 +275,7 @@ def find_max_difference_of_cluster_size(clusters):
 
 
 
-# return silhouette scores for given clustered items
+# function to calculate optimum k, approach used is similar to silhouette score.
 def optimum_k(items,n):
     ## TODO : implement this.
     ## elemanın kendi clusterındaki her elemana olan uzaklığının ortalaması
@@ -307,7 +289,7 @@ def optimum_k(items,n):
         clusters = return_clusters(means,items)
         maxDifference = find_max_difference_of_cluster_size(clusters)
         #print("max difference of elements in each cluster is ",maxDifference)
-        if(maxDifference > (len(items)/5)):
+        if(maxDifference > (len(items)/2)):
             #print("is not optimal Because. There should not be wide fluctuations between the size of the plots.")
             #print("max difference is ", find_max_difference_of_cluster_size(clusters))
             isOptimal= False
@@ -387,43 +369,43 @@ def optimum_k(items,n):
             maxSilhouette = max_metrics[key]
             index = int(key)
     #print("optimum k is : ",index+1)
-    #print(max_metrics)
+    print(max_metrics)
     return index
-# Function to compare two strings
-def similarityRatio(a, b):
-    return SequenceMatcher(None, a, b).ratio()
 
 # Function to calculate how well clustering is
 def calculate_accuracy(clusters):
+
     accuracies = []
     for cluster in clusters:
-        #print(cluster)
-        #print("-------")
-        nbrOfSetosa = 0
-        nbrOfVersicolor = 0
-        nbrOfVirginica = 0
-        for item in cluster:
-            if item == 'Iris-setosa':
-                nbrOfSetosa +=1
-            if item == 'Iris-virginica':
-                nbrOfVirginica +=1
-            if item == 'Iris-versicolor':
-                nbrOfVersicolor +=1
-        accuracies.append(max([nbrOfSetosa,nbrOfVersicolor,nbrOfVirginica])/(nbrOfSetosa +nbrOfVersicolor +nbrOfVirginica) )
-    #print (accuracies)
+        if(len(cluster)>1):
+            #print(cluster)
+            #print("-------")
+            nbrOfSetosa = 0
+            nbrOfVersicolor = 0
+            nbrOfVirginica = 0
+            for item in cluster:
+                if item == 'Iris-setosa':
+                    nbrOfSetosa +=1
+                if item == 'Iris-virginica':
+                    nbrOfVirginica +=1
+                if item == 'Iris-versicolor':
+                    nbrOfVersicolor +=1
+            accuracies.append(max([nbrOfSetosa,nbrOfVersicolor,nbrOfVirginica])/(nbrOfSetosa +nbrOfVersicolor +nbrOfVirginica) )
+        #print (accuracies)
     return(accuracies)
 
-######################## At the end of the project i will only call this function to cluster given dataset.############
-#TODO
+######################## i only call this function to cluster given dataset.############
 # Kmeans function without giving k as a parameter, it takes only data to be classed as parameter.
 def Kmeans(items):
     #define k
-    k=optimum_k(items,6)
+    k=optimum_k(items,5)
     # define means, calculate means function uses chose_initial_centroid which i developed.
     means = CalculateMeans(k,items);
     #final clusters, you can print to observe them.
     clusters = FindClusters(means,items);
+    #print(len(clusters))
     # final results. accuracy is calculated by the proportion of same elements in cluster.
+    #print(calculate_accuracy(clusters))
     return(calculate_accuracy(clusters))
 
 # This function is written for report of my project.
@@ -445,7 +427,11 @@ def report_results(items):
             secondClusterTotal += result[1]
             thirdClusterTotal += result[2]
         print("Silhouette scores for each cluster", result)
-    averageResults = [firstClusterTotal/counter, secondClusterTotal/counter,thirdClusterTotal/counter]
+    if (counter != 0):
+        averageResults = [firstClusterTotal/counter, secondClusterTotal/counter,thirdClusterTotal/counter]
+    else:
+        print("3 lü clustera ayıramadı !")
+        averageResults = [0,0,0]
     print("Iris data setinde 3 class vardır. Algoritmam 20 defa calıstırılıp toplamda : ",counter, " kere 3 clustera ayırmıştır." )
     print("Dogru sayıda cluster bulma oranı yuzde ",counter*5)
     print("Denemeler sonucu doğru sayıda cluster olduğu zamanki ortalama her cluster için silhouette scorları : ", averageResults)
@@ -454,6 +440,8 @@ def report_results(items):
 def main():
     items = ReadData('iris.txt');
     report_results(items)
+
+    ## Other Testing scenerios
     #print(items[0])
     #Kmeans(items)
     # cMin,cMax = FindColMinMax(items)
@@ -462,7 +450,6 @@ def main():
     # optimum_k(items,6)
     #print(items)
 
-    ## Testing scenerios
     # able to classify items for the moment. will compare with choosing better initial points.
     # newitem1 = [5.1,3.5,1.4,0.2]
     # newitem2 = [7.0,3.2,4.7,1.4]
