@@ -1,6 +1,0 @@
-20,20,20,20,Iris-setosa
-21,21,21,21,Iris-setosa
-15,15,15,15,Iris-virginica
-15,18,17,16,Iris-virginica
-10,10,10,10,Iris-versicolor
-11,5,9,8,Iris-versicolor

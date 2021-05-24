@@ -369,7 +369,7 @@ def optimum_k(items,n):
             maxSilhouette = max_metrics[key]
             index = int(key)
     #print("optimum k is : ",index+1)
-    print(max_metrics)
+    #print(max_metrics)
     return index
 
 # Function to calculate how well clustering is
@@ -405,7 +405,7 @@ def Kmeans(items):
     clusters = FindClusters(means,items);
     #print(len(clusters))
     # final results. accuracy is calculated by the proportion of same elements in cluster.
-    #print(calculate_accuracy(clusters))
+    #print("accuracy : ",calculate_accuracy(clusters))
     return(calculate_accuracy(clusters))
 
 # This function is written for report of my project.
@@ -426,7 +426,7 @@ def report_results(items):
             firstClusterTotal += result[0]
             secondClusterTotal += result[1]
             thirdClusterTotal += result[2]
-        print("Silhouette scores for each cluster", result)
+        print("Accuracy rate for clusters", result)
     if (counter != 0):
         averageResults = [firstClusterTotal/counter, secondClusterTotal/counter,thirdClusterTotal/counter]
     else:
@@ -434,7 +434,7 @@ def report_results(items):
         averageResults = [0,0,0]
     print("Iris data setinde 3 class vardır. Algoritmam 20 defa calıstırılıp toplamda : ",counter, " kere 3 clustera ayırmıştır." )
     print("Dogru sayıda cluster bulma oranı yuzde ",counter*5)
-    print("Denemeler sonucu doğru sayıda cluster olduğu zamanki ortalama her cluster için silhouette scorları : ", averageResults)
+    print("Denemeler sonucu doğru sayıda cluster olduğu zamanki ortalama her cluster için doğru bilme oranı : ", averageResults)
 
 ###_Main_###
 def main():
