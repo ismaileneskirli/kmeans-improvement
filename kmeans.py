@@ -1,11 +1,11 @@
 import math
 import sys;
-import sklearn
 from random import shuffle, uniform;
-from sklearn import cluster
 from scipy import stats
 import numpy as np
 import random
+
+#Author : İsmail Enes KIRLI
 
 #### Preparing the Data
 def ReadData(filename):
